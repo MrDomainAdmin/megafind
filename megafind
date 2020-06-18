@@ -1,0 +1,39 @@
+if [ $# -eq 0 ]
+ then
+	echo "No arguments supplied. "
+	exit 1
+fi
+
+
+p1=$(echo $1 | cut -d"." -f1)
+p2=$(echo $1 | cut -d"." -f2)
+domain="@$1"
+echo $domain
+echo "Starting LinkedIn Parsing"
+for file in LinkedIn/*.txt
+do
+	grep -r --no-filename "$domain" "$file"   > tmp/$(basename "$file").txt &
+done
+wait
+echo "Finished Linkedin"
+#find /data/password_dumps/collection1/*/*.zip -type f -exec zipgrep $domain {} \; &
+echo "Starting Collection1 Parsing"
+for file in Collection1/*.tar.gz
+do
+	zgrep -a "$domain" "$file"  > tmp/$(basename "$file").txt &
+done
+wait
+echo "Finished Collection 1"
+echo "Starting Collection2-5 Parsing"
+for file in Collection2-5/*.tar.gz
+do
+	zgrep -a "$domain" "$file"  > tmp/$(basename "$file").txt &
+done
+wait
+echo "Done grabbing emails, parsing and combining"
+
+cat  tmp/*.txt | grep -E -wo "\b[A-Za-z0-9.]+@$p1+\.$p2" |  tr '[:upper:]' '[:lower:]' > combined.txt
+cat asdfcombined1.txt | sort | uniq > $1.txt
+rm tmp/*.txt asdfcombined1.txt
+echo "Finished file $1.atxt has been created"
+
